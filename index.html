@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Пчеловод ловит пчёл — Игра в стиле «Ну, погоди!»</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <!-- Top Retro Console HUD Bar -->
+    <header class="hud-bar">
+      <div class="brand-block">
+        <span class="console-badge">ЭЛЕКТРОНИКА • ПАСЕКА</span>
+        <h1>Пчеловод и Пчёлы</h1>
+      </div>
+
+      <div class="stats-row">
+        <!-- Honeycomb Cells Progress -->
+        <div class="stat-pill honeycomb-pill" title="Заполнение медовой рамки (16 сот)">
+          <div class="pill-icon">🍯</div>
+          <div class="pill-content">
+            <span class="pill-label">СОТЫ В РАМКЕ</span>
+            <div class="cells-progress-row">
+              <strong id="cells-count">0 / 16</strong>
+              <div class="mini-comb-grid" id="mini-comb-grid"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Collected Honey Jars -->
+        <div class="stat-pill jars-pill" title="Банки мёда, полученные от кота">
+          <img src="assets/jar.png" alt="Банка мёда" class="hud-jar-icon" />
+          <div class="pill-content">
+            <span class="pill-label">БАНКИ МЁДА</span>
+            <div class="jars-shelf" id="jars-shelf">
+              <strong id="jars-count">0</strong>
+            </div>
+          </div>
+        </div>
+
+        <!-- Missed Bees / Lives -->
+        <div class="stat-pill lives-pill" title="Пропущенные пчёлы (штрафные очки)">
+          <div class="pill-content">
+            <span class="pill-label">ЖИЗНИ</span>
+            <div class="lives-hearts" id="lives-hearts">❤️❤️❤️</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="controls-row">
+        <button id="btn-demo-cat" class="btn-retro btn-cat" title="Заполнить почти все соты, чтобы сразу увидеть кота и обмен на банку мёда">
+          🐱 Позвать кота (15/16 сот)
+        </button>
+        <button id="btn-sound" class="btn-retro" title="Включить / выключить звук">
+          🔊 Звук
+        </button>
+        <button id="btn-restart" class="btn-retro" title="Начать игру сначала">
+          🔄 Сброс
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Game Viewport -->
+    <main class="stage-wrapper">
+      <div class="canvas-frame" id="canvas-frame">
+        <canvas id="game-canvas" width="1672" height="941"></canvas>
+
+        <!-- Start / Rules Overlay -->
+        <div class="overlay" id="start-overlay">
+          <div class="modal-card">
+            <div class="modal-badge">ИГРА «ВОЛК ЛОВИТ ЯЙЦА» НА ПАСЕКЕ</div>
+            <h2>Помоги пчеловоду собрать мёд!</h2>
+            <p class="modal-desc">
+              Из четырёх ульев вылетают пчёлы. Двигай <strong>мышкой</strong> в сторону нужного улья, чтобы пчеловод подставил медовую рамку!
+            </p>
+            <div class="rules-grid">
+              <div class="rule-item">
+                <span class="rule-emoji">🐝</span>
+                <span>Каждая пойманная пчела заполняет <strong>одну соту</strong> в рамке.</span>
+              </div>
+              <div class="rule-item">
+                <span class="rule-emoji">🐱</span>
+                <span>Когда <strong>все 16 сот заполнены</strong>, появляется кот и забирает рамку!</span>
+              </div>
+              <div class="rule-item">
+                <img src="assets/jar.png" alt="Мёд" class="rule-jar" />
+                <span>Взамен кот даёт пчеловоду <strong>банку вкусного мёда</strong>!</span>
+              </div>
+            </div>
+            <div class="modal-actions">
+              <button id="btn-start-game" class="btn-primary-large">▶ ИГРАТЬ (Управление мышкой)</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Cat Reward Modal (can also continue automatically or on click) -->
+        <div class="overlay hidden" id="reward-overlay">
+          <div class="modal-card reward-card">
+            <div class="modal-badge badge-gold">ВСЕ СОТЫ ЗАПОЛНЕНЫ!</div>
+            <h2>Кот забрал рамку и дал банку мёда! 🐱🍯</h2>
+            <div class="reward-showcase">
+              <img src="assets/cat.png" alt="Кот" class="showcase-cat" />
+              <div class="showcase-arrow">➔</div>
+              <div class="jar-spotlight">
+                <img src="assets/jar.png" alt="Банка мёда" class="showcase-jar" />
+              </div>
+            </div>
+            <p class="modal-desc" id="reward-text">
+              Отличная работа! Пчеловод получил банку свежего мёда и новую пустую рамку.
+            </p>
+            <div class="modal-actions">
+              <button id="btn-continue-game" class="btn-primary-large">🍯 Продолжить сбор мёда!</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Game Over Modal -->
+        <div class="overlay hidden" id="gameover-overlay">
+          <div class="modal-card">
+            <div class="modal-badge badge-danger">ПЧЁЛЫ РАЗЛЕТЕЛИСЬ!</div>
+            <h2>Игра окончена</h2>
+            <p class="modal-desc" id="gameover-stats">
+              Поймано пчёл: 0 • Собрано банок мёда: 0
+            </p>
+            <div class="modal-actions">
+              <button id="btn-retry-game" class="btn-primary-large">🔄 Сыграть ещё раз</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Footer Hint -->
+    <footer class="footer-bar">
+      <span>🖱️ <strong>Управление:</strong> просто двигай мышку к нужному улью (верх-лево, низ-лево, верх-право, низ-право) или используй клавиши <kbd>Q</kbd> <kbd>A</kbd> <kbd>P</kbd> <kbd>L</kbd> / стрелки.</span>
+      <span id="status-hint" class="status-hint">Наведи мышку на игровое поле, чтобы ловить пчёл в рамку!</span>
+    </footer>
+  </div>
+
+  <script src="game.js"></script>
+</body>
+</html>
